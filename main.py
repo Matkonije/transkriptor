@@ -81,6 +81,10 @@ def download_audio(url: str, output_path: str) -> dict:
     }
     if HAS_COOKIES:
         ydl_opts["cookiefile"] = COOKIES_PATH
+
+    # Workaround za YouTube format probleme — android player client
+    # je pouzdaniji jer YouTube često mijenja format izlaganje za web klijent
+    ydl_opts["extractor_args"] = {"youtube": {"player_client": ["android", "web"]}}
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
         return {"title": info.get("title", "Nepoznato"), "duration": info.get("duration", 0)}
