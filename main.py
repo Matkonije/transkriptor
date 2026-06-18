@@ -68,7 +68,7 @@ class TranscribeRequest(BaseModel):
 
 def download_audio(url: str, output_path: str) -> dict:
     ydl_opts = {
-        "format": "bestaudio/best",
+        "format": "bestaudio/best[ext=mp4]/best",
         "outtmpl": output_path,
         "ffmpeg_location": FFMPEG_PATH,
         "postprocessors": [{
