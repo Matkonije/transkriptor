@@ -6,6 +6,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yt_dlp
+import imageio_ffmpeg
+
+# Ffmpeg binary koji dolazi unutar pip paketa — ne treba sistemski ffmpeg
+FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 
 ALLOWED_EXTENSIONS = {".mp3", ".mp4", ".m4a", ".wav", ".webm", ".ogg", ".flac", ".opus", ".mpeg"}
 MAX_FILE_SIZE_MB = 200
@@ -54,6 +58,7 @@ def download_audio(url: str, output_path: str) -> dict:
     ydl_opts = {
         "format": "bestaudio/best",
         "outtmpl": output_path,
+        "ffmpeg_location": FFMPEG_PATH,
         "postprocessors": [{
             "key": "FFmpegExtractAudio",
             "preferredcodec": "mp3",

@@ -5,6 +5,9 @@ uvicorn[standard]
 # YouTube download
 yt-dlp
 
+# Bundled ffmpeg binary (ne treba sistemski ffmpeg)
+imageio-ffmpeg
+
 # Lokalni Whisper (za razvoj)
 faster-whisper
 
