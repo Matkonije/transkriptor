@@ -12,11 +12,14 @@ import imageio_ffmpeg
 FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 
 # Cookies za YouTube (potrebno na cloud serverima jer YouTube blokira datacenter IP-ove)
-# Render mountira "Secret Files" na /etc/secrets/<filename>
-COOKIES_PATH = os.getenv("COOKIES_PATH", "/etc/secrets/cookies.txt")
-HAS_COOKIES = os.path.exists(COOKIES_PATH)
+# Render mountira "Secret Files" na /etc/secrets/<filename>, ali READ-ONLY —
+# yt-dlp pokušava pisati natrag u cookies file, pa ga kopiramo u /tmp (pisivo).
+SECRET_COOKIES_PATH = os.getenv("COOKIES_PATH", "/etc/secrets/cookies.txt")
+COOKIES_PATH = "/tmp/cookies.txt"
+HAS_COOKIES = os.path.exists(SECRET_COOKIES_PATH)
 if HAS_COOKIES:
-    print(f"[youtube] Koristim cookies iz {COOKIES_PATH}")
+    shutil.copy(SECRET_COOKIES_PATH, COOKIES_PATH)
+    print(f"[youtube] Cookies kopirani u pisivu lokaciju: {COOKIES_PATH}")
 else:
     print("[youtube] Nema cookies.txt — ako YouTube blokira kao bota, dodaj Secret File na Renderu.")
 
