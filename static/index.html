@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transkriptor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #F7F7F5;
+      --card:     #FFFFFF;
+      --ink:      #111827;
+      --muted:    #6B7280;
+      --border:   #E5E7EB;
+      --accent:   #059669;
+      --accent-h: #047857;
+      --error-bg: #FEF2F2;
+      --error:    #DC2626;
+    }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 48px 24px 80px;
+    }
+
+    .wrap { max-width: 700px; margin: 0 auto; }
+
+    /* Header */
+    header { text-align: center; margin-bottom: 48px; }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--ink);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 8px;
+    }
+    .logo-icon span { display: block; width: 3px; background: white; border-radius: 2px; }
+    .logo-icon span:nth-child(1) { height: 8px; }
+    .logo-icon span:nth-child(2) { height: 14px; }
+    .logo-icon span:nth-child(3) { height: 20px; }
+    .logo-icon span:nth-child(4) { height: 14px; }
+    .logo-icon span:nth-child(5) { height: 8px; }
+
+    .logo-text { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    header p { color: var(--muted); font-size: 0.95rem; }
+
+    /* Card */
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 6px 20px rgba(0,0,0,0.04);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      border-radius: 7px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .tab-btn.active {
+      background: white;
+      color: var(--ink);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Input */
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    .input-row { display: flex; gap: 10px; }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 13px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--ink);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus { border-color: var(--accent); background: white; }
+    input[type="text"]::placeholder { color: #9CA3AF; }
+
+    /* Buttons */
+    .btn {
+      padding: 13px 24px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-primary { background: var(--ink); color: white; }
+    .btn-primary:hover:not(:disabled) { background: #1F2937; }
+    .btn-primary:active:not(:disabled) { transform: scale(0.98); }
+    .btn-primary:disabled { background: #9CA3AF; cursor: not-allowed; }
+    .btn-outline {
+      background: white; color: var(--ink);
+      border: 2px solid var(--border);
+      padding: 9px 18px; font-size: 0.85rem;
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-accent { background: var(--accent); color: white; padding: 9px 18px; font-size: 0.85rem; }
+    .btn-accent:hover { background: var(--accent-h); }
+
+    /* Drop zone */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--bg);
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: #f0fdf8;
+    }
+    .drop-zone.has-file {
+      border-color: var(--accent);
+      background: #f0fdf8;
+    }
+
+    .drop-icon {
+      font-size: 2.2rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .drop-main {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .drop-sub {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .file-info {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+    }
+
+    .file-info.visible { display: flex; }
+
+    .file-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 400px;
+    }
+
+    .file-size { font-size: 0.8rem; color: var(--muted); flex-shrink: 0; margin-left: 12px; }
+
+    .upload-btn-row {
+      margin-top: 12px;
+      display: none;
+    }
+    .upload-btn-row.visible { display: block; }
+
+    /* Loading */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 40px 0 8px;
+    }
+
+    .waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      height: 52px;
+      margin-bottom: 20px;
+    }
+
+    .waveform .b {
+      width: 5px;
+      border-radius: 3px;
+      background: var(--accent);
+      animation: pulse 1.1s ease-in-out infinite;
+    }
+
+    .waveform .b:nth-child(1)  { animation-delay: 0.0s; height: 12px; }
+    .waveform .b:nth-child(2)  { animation-delay: 0.1s; height: 20px; }
+    .waveform .b:nth-child(3)  { animation-delay: 0.2s; height: 32px; }
+    .waveform .b:nth-child(4)  { animation-delay: 0.3s; height: 44px; }
+    .waveform .b:nth-child(5)  { animation-delay: 0.4s; height: 52px; }
+    .waveform .b:nth-child(6)  { animation-delay: 0.5s; height: 44px; }
+    .waveform .b:nth-child(7)  { animation-delay: 0.6s; height: 32px; }
+    .waveform .b:nth-child(8)  { animation-delay: 0.7s; height: 20px; }
+    .waveform .b:nth-child(9)  { animation-delay: 0.8s; height: 12px; }
+    .waveform .b:nth-child(10) { animation-delay: 0.9s; height: 20px; }
+    .waveform .b:nth-child(11) { animation-delay: 1.0s; height: 32px; }
+
+    @keyframes pulse {
+      0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
+      50%       { transform: scaleY(1);   opacity: 1;   }
+    }
+
+    #loadingTitle { font-weight: 600; font-size: 1rem; margin-bottom: 4px; }
+    #loadingStep  { color: var(--muted); font-size: 0.88rem; }
+
+    /* Error */
+    #error {
+      display: none;
+      background: var(--error-bg);
+      border: 1.5px solid #FECACA;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-top: 16px;
+      color: var(--error);
+      font-size: 0.9rem;
+    }
+
+    /* Result */
+    #result { display: none; margin-top: 20px; }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .result-info h2 { font-size: 1.05rem; font-weight: 600; line-height: 1.35; }
+    .result-meta { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+    .result-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    .divider { height: 1.5px; background: var(--border); margin-bottom: 20px; }
+
+    #transcriptText {
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: var(--ink);
+      white-space: pre-wrap;
+      max-height: 480px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    #transcriptText::-webkit-scrollbar { width: 4px; }
+    #transcriptText::-webkit-scrollbar-track { background: var(--bg); border-radius: 4px; }
+    #transcriptText::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    footer { text-align: center; margin-top: 40px; font-size: 0.8rem; color: #9CA3AF; }
+
+    input[type="file"] { display: none; }
+
+    @media (max-width: 480px) {
+      .input-row { flex-direction: column; }
+      .result-header { flex-direction: column; }
+      .result-actions { width: 100%; }
+      .result-actions .btn { flex: 1; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <span class="logo-text">Transkriptor</span>
+    </div>
+    <p>YouTube link ili audio fajl → transkript na bilo kojem jeziku</p>
+  </header>
+
+  <div class="card">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('youtube')">▶ YouTube</button>
+      <button class="tab-btn" onclick="switchTab('file')">🎵 Audio fajl</button>
+    </div>
+
+    <!-- YouTube tab -->
+    <div id="tab-youtube">
+      <label for="urlInput">YouTube link</label>
+      <div class="input-row">
+        <input
+          type="text"
+          id="urlInput"
+          placeholder="https://www.youtube.com/watch?v=..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="btn btn-primary" id="submitYT" onclick="startYouTube()">Transkribiraj</button>
+      </div>
+    </div>
+
+    <!-- File tab -->
+    <div id="tab-file" style="display:none">
+      <label>Audio fajl</label>
+
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <span class="drop-icon">🎙️</span>
+        <div class="drop-main">Klikni ili povuci fajl ovdje</div>
+        <div class="drop-sub">MP3, MP4, WAV, M4A, FLAC, OGG, WebM — do 200MB</div>
+      </div>
+
+      <input type="file" id="fileInput" accept=".mp3,.mp4,.m4a,.wav,.webm,.ogg,.flac,.opus" />
+
+      <div class="file-info" id="fileInfo">
+        <span class="file-name" id="fileName"></span>
+        <span class="file-size" id="fileSize"></span>
+      </div>
+
+      <div class="upload-btn-row" id="uploadBtnRow">
+        <button class="btn btn-primary" style="width:100%" id="submitFile" onclick="startFile()">Transkribiraj fajl</button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading">
+      <div class="waveform">
+        <div class="b"></div><div class="b"></div><div class="b"></div>
+        <div class="b"></div><div class="b"></div><div class="b"></div>
+        <div class="b"></div><div class="b"></div><div class="b"></div>
+        <div class="b"></div><div class="b"></div>
+      </div>
+      <div id="loadingTitle">Obrada...</div>
+      <div id="loadingStep">Pokretanje...</div>
+    </div>
+
+    <!-- Error -->
+    <div id="error">⚠️ <span id="errorMsg"></span></div>
+  </div>
+
+  <!-- Result -->
+  <div id="result" class="card">
+    <div class="result-header">
+      <div class="result-info">
+        <h2 id="resultTitle">Transkript</h2>
+        <div class="result-meta" id="resultMeta"></div>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-outline" id="copyBtn" onclick="copyTranscript()">Kopiraj</button>
+        <button class="btn btn-accent" onclick="downloadTranscript()">Preuzmi .txt</button>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div id="transcriptText"></div>
+  </div>
+
+  <footer>Pokreće Whisper · faster-whisper · yt-dlp</footer>
+
+</div>
+
+<script>
+  let currentJobId = null;
+  let pollInterval = null;
+  let selectedFile = null;
+  let activeTab = 'youtube';
+
+  // ── Tabs ───────────────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    activeTab = tab;
+    document.getElementById('tab-youtube').style.display = tab === 'youtube' ? 'block' : 'none';
+    document.getElementById('tab-file').style.display   = tab === 'file'    ? 'block' : 'none';
+    document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', (i === 0) === (tab === 'youtube'));
+    });
+    hideResults();
+  }
+
+  // ── YouTube ────────────────────────────────────────────────────────────────
+  document.getElementById('urlInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') startYouTube();
+  });
+
+  async function startYouTube() {
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) { document.getElementById('urlInput').focus(); return; }
+
+    showLoading('Preuzimanje s YouTubea...', 'Spajanje...');
+    document.getElementById('submitYT').disabled = true;
+
+    try {
+      const res = await fetch('/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      if (!res.ok) throw new Error(`Greška servera: ${res.status}`);
+      const data = await res.json();
+      startPolling(data.job_id);
+    } catch (err) {
+      showError(err.message);
+      document.getElementById('submitYT').disabled = false;
+    }
+  }
+
+  // ── File upload ────────────────────────────────────────────────────────────
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) setFile(file);
+  });
+
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) setFile(e.target.files[0]);
+  });
+
+  function setFile(file) {
+    selectedFile = file;
+    dropZone.classList.add('has-file');
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = formatSize(file.size);
+    document.getElementById('fileInfo').classList.add('visible');
+    document.getElementById('uploadBtnRow').classList.add('visible');
+  }
+
+  async function startFile() {
+    if (!selectedFile) return;
+
+    showLoading(selectedFile.name, 'Slanje fajla...');
+    document.getElementById('submitFile').disabled = true;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const res = await fetch('/transcribe-file', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || `Greška servera: ${res.status}`);
+      }
+
+      const data = await res.json();
+      startPolling(data.job_id);
+    } catch (err) {
+      showError(err.message);
+      document.getElementById('submitFile').disabled = false;
+    }
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  // ── Polling ────────────────────────────────────────────────────────────────
+  function startPolling(jobId) {
+    currentJobId = jobId;
+    pollInterval = setInterval(checkStatus, 2000);
+  }
+
+  async function checkStatus() {
+    if (!currentJobId) return;
+    try {
+      const res = await fetch(`/status/${currentJobId}`);
+      const data = await res.json();
+      if (data.title)  document.getElementById('loadingTitle').textContent = data.title;
+      if (data.step)   document.getElementById('loadingStep').textContent  = data.step;
+
+      if (data.status === 'done')  { clearInterval(pollInterval); showResult(data); }
+      if (data.status === 'error') { clearInterval(pollInterval); showError(data.error || 'Nepoznata greška'); }
+    } catch {
+      clearInterval(pollInterval);
+      showError('Greška pri provjeri statusa.');
+    }
+  }
+
+  // ── UI helpers ─────────────────────────────────────────────────────────────
+  function showLoading(title, step) {
+    hideResults();
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('loadingTitle').textContent = title;
+    document.getElementById('loadingStep').textContent  = step;
+  }
+
+  function showResult(data) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('submitYT').disabled = false;
+    document.getElementById('submitFile').disabled = false;
+
+    const langNames = { hr:'Hrvatski', en:'Engleski', de:'Njemački', fr:'Francuski', it:'Talijanski', es:'Španjolski', bs:'Bosanski', sr:'Srpski' };
+    const lang = data.language ? (langNames[data.language] || data.language.toUpperCase()) : '';
+    const segs = data.segments?.length ? `${data.segments.length} segmenata` : '';
+
+    document.getElementById('resultTitle').textContent  = data.title || 'Transkript';
+    document.getElementById('resultMeta').textContent   = [lang, segs].filter(Boolean).join(' · ');
+    document.getElementById('transcriptText').textContent = data.transcript || '(prazno)';
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Reset file zone
+    selectedFile = null;
+    document.getElementById('dropZone').classList.remove('has-file');
+    document.getElementById('fileInfo').classList.remove('visible');
+    document.getElementById('uploadBtnRow').classList.remove('visible');
+    document.getElementById('urlInput').value = '';
+    fileInput.value = '';
+  }
+
+  function showError(message) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('submitYT').disabled = false;
+    document.getElementById('submitFile').disabled = false;
+    document.getElementById('errorMsg').textContent = message;
+    document.getElementById('error').style.display = 'block';
+  }
+
+  function hideResults() {
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('error').style.display  = 'none';
+    document.getElementById('loading').style.display = 'none';
+  }
+
+  function copyTranscript() {
+    navigator.clipboard.writeText(document.getElementById('transcriptText').textContent).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'Kopirano ✓';
+      setTimeout(() => btn.textContent = 'Kopiraj', 2000);
+    });
+  }
+
+  function downloadTranscript() {
+    const text  = document.getElementById('transcriptText').textContent;
+    const title = document.getElementById('resultTitle').textContent;
+    const safe  = title.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
+    const blob  = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url   = URL.createObjectURL(blob);
+    const a     = document.createElement('a');
+    a.href = url; a.download = `${safe || 'transkript'}.txt`; a.click();
+    URL.revokeObjectURL(url);
+  }
+</script>
+</body>
+</html>

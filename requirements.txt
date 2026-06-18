@@ -1,0 +1,15 @@
+# Web server
+fastapi
+uvicorn[standard]
+
+# YouTube download
+yt-dlp
+
+# Lokalni Whisper (za razvoj)
+faster-whisper
+
+# OpenAI API (za produkciju)
+openai
+
+# Utils
+python-multipart
