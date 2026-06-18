@@ -11,6 +11,15 @@ import imageio_ffmpeg
 # Ffmpeg binary koji dolazi unutar pip paketa — ne treba sistemski ffmpeg
 FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 
+# Cookies za YouTube (potrebno na cloud serverima jer YouTube blokira datacenter IP-ove)
+# Render mountira "Secret Files" na /etc/secrets/<filename>
+COOKIES_PATH = os.getenv("COOKIES_PATH", "/etc/secrets/cookies.txt")
+HAS_COOKIES = os.path.exists(COOKIES_PATH)
+if HAS_COOKIES:
+    print(f"[youtube] Koristim cookies iz {COOKIES_PATH}")
+else:
+    print("[youtube] Nema cookies.txt — ako YouTube blokira kao bota, dodaj Secret File na Renderu.")
+
 ALLOWED_EXTENSIONS = {".mp3", ".mp4", ".m4a", ".wav", ".webm", ".ogg", ".flac", ".opus", ".mpeg"}
 MAX_FILE_SIZE_MB = 200
 
@@ -67,6 +76,8 @@ def download_audio(url: str, output_path: str) -> dict:
         "quiet": True,
         "no_warnings": True,
     }
+    if HAS_COOKIES:
+        ydl_opts["cookiefile"] = COOKIES_PATH
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
         return {"title": info.get("title", "Nepoznato"), "duration": info.get("duration", 0)}
