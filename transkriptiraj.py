@@ -22,7 +22,7 @@ import yt_dlp
 import imageio_ffmpeg
 
 # Zamijeni s URL-om svog Render servisa
-SERVER_URL = "https://transkriptor.onrender.com"
+SERVER_URL = "https://transkriptor-u5kp.onrender.com"
 
 FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 
