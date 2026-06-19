@@ -1,4 +1,6 @@
-# Dependencies za transkriptiraj.py - sve sto treba, nista vise
+# Dependencies za transkriptiraj.py
+# Napomena: NEMA OpenAI paketa ovdje - key se nikad ne koristi lokalno,
+# server (kojeg kontrolira vlasnik alata) brine za to.
 yt-dlp
 imageio-ffmpeg
-openai
+requests

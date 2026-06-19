@@ -1,40 +1,33 @@
 #!/usr/bin/env python3
 """
-Transkriptiraj - samostalna lokalna skripta za YouTube -> transkript.
+Transkriptiraj - lokalna skripta za YouTube -> transkript.
 
-Skida audio s YouTubea lokalno (zato YouTube ne blokira kao na cloud serverima)
-i šalje ga direktno na OpenAI Whisper API za transkripciju. Nema potrebe za
-posebnim serverom.
+Skida audio s YouTubea lokalno (zato YouTube ne blokira kao na cloud
+serverima) i uploada ga na Transkriptor server koji radi transkripciju
+preko OpenAI Whisper API-ja. Nikakav API key se ne koristi lokalno -
+sve to čuva server.
 
 Korištenje:
-    python transkriptiraj.py "https://youtube.com/watch?v=..."
-
-Prije prvog korištenja postavi OpenAI API key:
-    Windows:      set OPENAI_API_KEY=sk-...
-    Mac/Linux:    export OPENAI_API_KEY=sk-...
+    python3 transkriptiraj.py "https://youtube.com/watch?v=..."
 """
 
 import sys
 import os
+import argparse
 import tempfile
+import time
 
+import requests
 import yt_dlp
 import imageio_ffmpeg
-from openai import OpenAI
+
+# Zamijeni s URL-om svog Render servisa
+SERVER_URL = "https://transkriptor.onrender.com"
 
 FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 
-
-def get_client() -> OpenAI:
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        print("❌ Nedostaje OPENAI_API_KEY environment varijabla.")
-        print()
-        print("Postavi je ovako pa pokreni skriptu opet:")
-        print("  Windows:    set OPENAI_API_KEY=sk-tvoj-kljuc")
-        print("  Mac/Linux:  export OPENAI_API_KEY=sk-tvoj-kljuc")
-        sys.exit(1)
-    return OpenAI(api_key=api_key)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_OUTPUT_DIR = os.path.join(SCRIPT_DIR, "transkripti")
 
 
 def download_audio(url: str, output_dir: str) -> tuple[str, str]:
@@ -68,56 +61,73 @@ def download_audio(url: str, output_dir: str) -> tuple[str, str]:
     return audio_path, title
 
 
-def transcribe(client: OpenAI, audio_path: str) -> dict:
-    """Šalje audio na OpenAI Whisper API i vraća rezultat."""
-    print("🧠 Transkripcija preko OpenAI API-ja...")
+def upload_and_transcribe(audio_path: str) -> dict:
+    """Uploada audio na server i čeka rezultat transkripcije."""
+    print("📤 Slanje na server...")
 
     with open(audio_path, "rb") as f:
-        result = client.audio.transcriptions.create(
-            model="whisper-1",
-            file=f,
-            response_format="verbose_json",
-        )
+        files = {"file": (os.path.basename(audio_path), f, "audio/mpeg")}
+        response = requests.post(f"{SERVER_URL}/transcribe-file", files=files, timeout=120)
 
-    return {
-        "text": result.text,
-        "language": getattr(result, "language", "nepoznat"),
-        "segments": getattr(result, "segments", []) or [],
-    }
+    if not response.ok:
+        raise RuntimeError(f"Server greška ({response.status_code}): {response.text}")
+
+    job_id = response.json()["job_id"]
+    print("🧠 Transkripcija u tijeku...")
+
+    last_step = None
+    while True:
+        time.sleep(2)
+        status_res = requests.get(f"{SERVER_URL}/status/{job_id}", timeout=30)
+        data = status_res.json()
+
+        if data.get("step") and data["step"] != last_step:
+            print(f"   {data['step']}")
+            last_step = data["step"]
+
+        if data["status"] == "done":
+            return data
+        if data["status"] == "error":
+            raise RuntimeError(f"Greška u transkripciji: {data.get('error')}")
 
 
-def save_transcript(title: str, text: str) -> str:
-    """Sprema transkript u .txt fajl, vraća putanju."""
+def save_transcript(title: str, text: str, output_dir: str) -> str:
+    """Sprema transkript u .txt fajl, vraća punu (apsolutnu) putanju."""
+    os.makedirs(output_dir, exist_ok=True)
+
     safe_name = "".join(c for c in title if c.isalnum() or c in " -_").strip()
     safe_name = safe_name.replace(" ", "_").lower()[:60] or "transkript"
-    output_path = f"{safe_name}.txt"
+    output_path = os.path.join(output_dir, f"{safe_name}.txt")
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(text)
 
-    return output_path
+    return os.path.abspath(output_path)
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Korištenje: python transkriptiraj.py <youtube_link>")
-        sys.exit(1)
-
-    url = sys.argv[1]
-    client = get_client()
+    parser = argparse.ArgumentParser(description="Transkribiraj YouTube video preko Transkriptor servera.")
+    parser.add_argument("url", help="YouTube link")
+    parser.add_argument(
+        "-o", "--output",
+        default=DEFAULT_OUTPUT_DIR,
+        help=f"Folder za spremanje transkripta (default: {DEFAULT_OUTPUT_DIR})"
+    )
+    args = parser.parse_args()
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         try:
-            audio_path, title = download_audio(url, tmp_dir)
-            result = transcribe(client, audio_path)
-            output_file = save_transcript(title, result["text"])
+            audio_path, title = download_audio(args.url, tmp_dir)
+            result = upload_and_transcribe(audio_path)
+            output_path = save_transcript(title, result["transcript"], args.output)
 
             print()
-            print("=" * 50)
-            print(f"✅ GOTOVO — transkript spremljen u: {output_file}")
-            print(f"   Jezik: {result['language']}")
-            print(f"   Segmenata: {len(result['segments'])}")
-            print("=" * 50)
+            print("=" * 60)
+            print("✅ GOTOVO")
+            print(f"   📄 Transkript: {output_path}")
+            print(f"   🌐 Jezik: {result.get('language', 'nepoznat')}")
+            print(f"   📊 Segmenata: {len(result.get('segments', []))}")
+            print("=" * 60)
 
         except Exception as e:
             print(f"\n❌ Greška: {e}")
