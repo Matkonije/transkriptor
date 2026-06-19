@@ -4,6 +4,7 @@ uvicorn[standard]
 
 # YouTube download
 yt-dlp
+yt-dlp-invidious
 
 # Bundled ffmpeg binary (ne treba sistemski ffmpeg)
 imageio-ffmpeg
