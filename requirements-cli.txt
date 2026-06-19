@@ -1,0 +1,4 @@
+# Dependencies za transkriptiraj.py - sve sto treba, nista vise
+yt-dlp
+imageio-ffmpeg
+openai
