@@ -38,6 +38,7 @@ def download_audio(url: str, output_dir: str) -> tuple[str, str]:
         "format": "bestaudio/best",
         "outtmpl": output_template,
         "ffmpeg_location": FFMPEG_PATH,
+        "extractor_args": {"youtube": {"player_client": ["android", "web"]}},
         "postprocessors": [{
             "key": "FFmpegExtractAudio",
             "preferredcodec": "mp3",
