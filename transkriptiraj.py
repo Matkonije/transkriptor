@@ -48,7 +48,7 @@ def download_audio(url: str, output_dir: str) -> tuple[str, str]:
         "no_warnings": True,
     }
 
-    print("📥 Skidanje audia s YouTubea...")
+    print("Skidanje audia s YouTubea...")
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
         title = info.get("title", "Nepoznato")
@@ -58,13 +58,13 @@ def download_audio(url: str, output_dir: str) -> tuple[str, str]:
         raise FileNotFoundError("Audio fajl nije pronađen nakon skidanja.")
 
     size_mb = os.path.getsize(audio_path) / (1024 * 1024)
-    print(f"✅ Skinuto: '{title}' ({size_mb:.1f} MB)")
+    print(f"Skinuto: '{title}' ({size_mb:.1f} MB)")
     return audio_path, title
 
 
 def upload_and_transcribe(audio_path: str) -> dict:
     """Uploada audio na server i čeka rezultat transkripcije."""
-    print("📤 Slanje na server...")
+    print("Slanje na server...")
 
     with open(audio_path, "rb") as f:
         files = {"file": (os.path.basename(audio_path), f, "audio/mpeg")}
@@ -74,7 +74,7 @@ def upload_and_transcribe(audio_path: str) -> dict:
         raise RuntimeError(f"Server greška ({response.status_code}): {response.text}")
 
     job_id = response.json()["job_id"]
-    print("🧠 Transkripcija u tijeku...")
+    print("Transkripcija u tijeku...")
 
     last_step = None
     while True:
@@ -124,14 +124,14 @@ def main():
 
             print()
             print("=" * 60)
-            print("✅ GOTOVO")
-            print(f"   📄 Transkript: {output_path}")
-            print(f"   🌐 Jezik: {result.get('language', 'nepoznat')}")
-            print(f"   📊 Segmenata: {len(result.get('segments', []))}")
+            print("GOTOVO")
+            print(f"   Transkript: {output_path}")
+            print(f"   Jezik: {result.get('language', 'nepoznat')}")
+            print(f"   Segmenata: {len(result.get('segments', []))}")
             print("=" * 60)
 
         except Exception as e:
-            print(f"\n❌ Greška: {e}")
+            print(f"\nGreška: {e}")
             sys.exit(1)
 
 
